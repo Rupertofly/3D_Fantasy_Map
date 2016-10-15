@@ -1,0 +1,11 @@
+background-image: -webkit-gradient(linear, 0 0, 0 69.125, from(#831403), color-stop(0.521, #f9ff42), to(#008509));
+background-image: -webkit-linear-gradient(#831403, #f9ff42 52.1%, #008509);
+background-image: -moz-linear-gradient(#831403, #f9ff42 52.1%, #008509);
+background-image: -o-linear-gradient(#831403, #f9ff42 52.1%, #008509);
+background-image: linear-gradient(#831403, #f9ff42 52.1%, #008509)
+
+background-image: -webkit-gradient(linear, 0 0, 0 69.125, from(#831403), color-stop(0.202, #f5ff3e), color-stop(0.401, #248500), color-stop(0.501, #fcef7e), color-stop(0.567, #1580c2), to(#181d4a));
+background-image: -webkit-linear-gradient(#831403, #f5ff3e 20.2%, #248500 40.1%, #fcef7e 50.1%, #1580c2 56.7%, #181d4a);
+background-image: -moz-linear-gradient(#831403, #f5ff3e 20.2%, #248500 40.1%, #fcef7e 50.1%, #1580c2 56.7%, #181d4a);
+background-image: -o-linear-gradient(#831403, #f5ff3e 20.2%, #248500 40.1%, #fcef7e 50.1%, #1580c2 56.7%, #181d4a);
+background-image: linear-gradient(#831403, #f5ff3e 20.2%, #248500 40.1%, #fcef7e 50.1%, #1580c2 56.7%, #181d4a)
