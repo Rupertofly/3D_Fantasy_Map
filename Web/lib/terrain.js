@@ -831,7 +831,7 @@ function generateCoast(params) {
         h = relax(h);
     }
     h = peaky(h);
-    //h = doErosion(h, runif(0, 0.1), 5);
+    h = doErosion(h, runif(0, 0.1), 5);
     h = setSeaLevel(h, runif(0.2, 0.6));
     //h = fillSinks(h);
     h = cleanCoast(h, 3);
