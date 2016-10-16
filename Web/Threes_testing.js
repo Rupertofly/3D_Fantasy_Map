@@ -19,10 +19,11 @@ var ggui = new dat.GUI({
 });
 
 function generateUneroded(ext) {
-    var mesh = generateGoodMesh(4000, ext);
-    var h = add(slope(mesh, randomVector(1)),
-        cone(mesh, -1),
-        mountains(mesh, 5));
+    var mesh = generateGoodMesh(3000, ext);
+    var h = add(slope(mesh, randomVector(4)),
+        cone(mesh, 0.5),
+        mountains(mesh, 200, 0.15));
+    h = peaky(h);
     h = peaky(h);
     h = fillSinks(h);
     h = setSeaLevel(h, 0.5);
@@ -55,7 +56,7 @@ var geopara = {
     extent: defextent
 };
 var geom = generateUneroded(defextent);
-geom = doErosion(geom, 0.01);
+geom = doErosion(geom, 0.05);
 console.log(geom.mesh.vxs);
 var geomtri = Delaunay.triangulate(geom.mesh.vxs);
 var geotris = createGroupedArray(geomtri, 3);
@@ -85,11 +86,11 @@ function init() {
     timet = 0;
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-    camera.position.z = 1;
+    camera.position.z = 2;
     camera.position.y = 1;
     camera.rotation.x = Math.radians(-45);
     // debugger;
-    var hlight = new THREE.HemisphereLight(0xB58D3C, 0x080820, 1);
+    var hlight = new THREE.DirectionalLight(0xB58D3C, 1);
     hlight.position.y = 4;
     scene.add(hlight);
     var light = new THREE.AmbientLight(0x404040, 0.1); // soft white light
@@ -97,7 +98,7 @@ function init() {
     var geometry = new THREE.Geometry();
     var gvxs = geom.mesh.vxs;
     for (var i = 0; i < geom.length; i++) {
-        var h = geom[i];
+        var h = -1*geom[i];
         //h = Math.max(Math.min(h, 0.1), -0.1);
         //console.log(h);
         geometry.vertices.push(new THREE.Vector3(gvxs[i][0] - 1, gvxs[i][1] - 1, h));
@@ -107,12 +108,26 @@ function init() {
         geometry.faces.push(new THREE.Face3(t[0], t[1], t[2]));
     }
     var pgeo = new THREE.PlaneBufferGeometry(2, 2);
-    var material = new THREE.MeshPhongMaterial({
+    /*var material = new THREE.MeshPhongMaterial({
         color: 0xdddddd,
         shading: THREE.FlatShading,
         //side: THREE.DoubleSide,
         shininess: 0,
         specular: 0x000000
+    });*/
+    var uniforms =
+        THREE.UniformsUtils.merge([
+
+            THREE.UniformsLib["ambient"],
+            THREE.UniformsLib["lights"]
+
+        ]);
+    material = new THREE.ShaderMaterial({
+        vertexShader: $('#vertexshader').text(),
+        fragmentShader: $('#fragmentshader').text(),
+        shading: THREE.FlatShading,
+        lights: true,
+        uniforms: uniforms
     });
     var watermaterial = new THREE.MeshPhongMaterial({
         color: 0x13436b,
@@ -136,7 +151,8 @@ function init() {
     water.rotation.x = Math.radians(90);
     //water.rotation.x = -130;
     //water.position.y = 0.1;
-    debugger;
+    window.scene = scene;
+    window.THREE = THREE;
     render();
 }
 init();
@@ -164,7 +180,7 @@ function rerender() {
     camera.rotation.x = Math.radians(-45);
     // debugger;
     var geometry = null;
-    var geometry = new THREE.Geometry();
+    geometry = new THREE.Geometry();
     var gvxs = geom.mesh.vxs;
     for (var i = 0; i < geom.length; i++) {
         var h = geom[i];
@@ -177,14 +193,14 @@ function rerender() {
         geometry.faces.push(new THREE.Face3(t[0], t[1], t[2]));
     }
     //renderer.setClearColorHex(0x333F47, 1);
-    material = null;
-    material = new THREE.MeshPhongMaterial({
+    //material = null;
+    /*material = new THREE.MeshPhongMaterial({
         color: 0xdddddd,
         shading: THREE.FlatShading,
         //side: THREE.DoubleSide,
         shininess: 0,
         specular: 0x000000
-    });
+    });*/
     cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
     cube.rotation.x = Math.radians(90);
