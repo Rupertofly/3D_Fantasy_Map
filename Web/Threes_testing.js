@@ -5,23 +5,33 @@ var cube;
 var water;
 //debugger;
 var timet;
-
+var aniid;
 var defextent = {
-    width: 1,
-    height: 1
+    width: 2,
+    height: 2
 };
+var watermaterial;
+var material;
+var water;
 
-function generateUneroded() {
-    var mesh = generateGoodMesh(12000);
+var ggui = new dat.GUI({
+    height: 5 * 32 - 1
+});
+
+function generateUneroded(ext) {
+    var mesh = generateGoodMesh(4000, ext);
     var h = add(slope(mesh, randomVector(1)),
-                cone(mesh, 0.6),
-                mountains(mesh, 5));
+        cone(mesh, -1),
+        mountains(mesh, 5));
     h = peaky(h);
     h = fillSinks(h);
     h = setSeaLevel(h, 0.5);
     return h;
 }
 
+function empty(elem) {
+    while (elem.lastChild) elem.removeChild(elem.lastChild);
+}
 // Converts from degrees to radians.
 Math.radians = function(degrees) {
     return degrees * Math.PI / 180;
@@ -44,7 +54,7 @@ var geopara = {
     npts: 16000,
     extent: defextent
 };
-var geom = generateUneroded();
+var geom = generateUneroded(defextent);
 geom = doErosion(geom, 0.01);
 console.log(geom.mesh.vxs);
 var geomtri = Delaunay.triangulate(geom.mesh.vxs);
@@ -57,7 +67,19 @@ text2.style.width = 100;
 text2.style.height = 100;
 
 //debugger;
-
+var gpara = {
+    newmesh: function() {
+        cancelAnimationFrame(aniid);
+        geom = generateUneroded(defextent);
+        geom = doErosion(geom, 0.01);
+        geomtri = Delaunay.triangulate(geom.mesh.vxs);
+        geotris = createGroupedArray(geomtri, 3);
+        scene.remove(cube);
+        cube = null;
+        rerender();
+    }
+};
+ggui.add(gpara, 'newmesh');
 
 function init() {
     timet = 0;
@@ -78,13 +100,13 @@ function init() {
         var h = geom[i];
         //h = Math.max(Math.min(h, 0.1), -0.1);
         //console.log(h);
-        geometry.vertices.push(new THREE.Vector3(gvxs[i][0] - 0.5, gvxs[i][1] - 0.5, h));
+        geometry.vertices.push(new THREE.Vector3(gvxs[i][0] - 1, gvxs[i][1] - 1, h));
     }
     for (var j = 0; j < geotris.length; j++) {
         var t = geotris[j];
         geometry.faces.push(new THREE.Face3(t[0], t[1], t[2]));
     }
-    var pgeo = new THREE.PlaneBufferGeometry(1, 1);
+    var pgeo = new THREE.PlaneBufferGeometry(2, 2);
     var material = new THREE.MeshPhongMaterial({
         color: 0xdddddd,
         shading: THREE.FlatShading,
@@ -114,23 +136,61 @@ function init() {
     water.rotation.x = Math.radians(90);
     //water.rotation.x = -130;
     //water.position.y = 0.1;
+    debugger;
     render();
 }
 init();
 
 function render() {
-    text2.innerHTML = Math.degrees(cube.rotation.z);
+    text2.innerHTML = Math.max.apply(null, geom) + ',' + Math.min.apply(null, geom);
     text2.style.top = 200 + 'px';
     text2.style.left = 200 + 'px';
     document.body.appendChild(text2);
     //debugger;
-    requestAnimationFrame(render);
-    //water.position.y = (Math.sin(timet)*2);
+    aniid = requestAnimationFrame(render);
     //timet += 0.5;
     //camera.rotation.x -= 0.001*Math.PI;
     //water.rotation.z += 0.001;
     cube.rotation.z += 0.001;
-    water.rotation.z += 0.001
+    water.rotation.z += 0.001;
 
     renderer.render(scene, camera);
+}
+
+function rerender() {
+
+    camera.position.z = 1;
+    camera.position.y = 1;
+    camera.rotation.x = Math.radians(-45);
+    // debugger;
+    var geometry = null;
+    var geometry = new THREE.Geometry();
+    var gvxs = geom.mesh.vxs;
+    for (var i = 0; i < geom.length; i++) {
+        var h = geom[i];
+        //h = Math.max(Math.min(h, 0.1), -0.1);
+        //console.log(h);
+        geometry.vertices.push(new THREE.Vector3(gvxs[i][0] - 1, gvxs[i][1] - 1, h));
+    }
+    for (var j = 0; j < geotris.length; j++) {
+        var t = geotris[j];
+        geometry.faces.push(new THREE.Face3(t[0], t[1], t[2]));
+    }
+    //renderer.setClearColorHex(0x333F47, 1);
+    material = null;
+    material = new THREE.MeshPhongMaterial({
+        color: 0xdddddd,
+        shading: THREE.FlatShading,
+        //side: THREE.DoubleSide,
+        shininess: 0,
+        specular: 0x000000
+    });
+    cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+    cube.rotation.x = Math.radians(90);
+
+    water.rotation.z = 0;
+    //water.rotation.x = -130;
+    //water.position.y = 0.1;
+    render();
 }
