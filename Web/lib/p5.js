@@ -1587,7 +1587,7 @@ var path = _dereq_('../path');
 var table = _dereq_('../table');
 
 // Custom equals function that can also check lists.
-function equals(a, b) {
+/*function equals(a, b) {
     if (a === b) {
         return true;
     } else if (Array.isArray(a) && Array.isArray(b)) {
@@ -1605,7 +1605,7 @@ function equals(a, b) {
     } else {
         return false;
     }
-}
+}*/
 
 // Parse a `CFF` INDEX array.
 // An index array consists of a list of offsets, then a list of objects at those offsets.
@@ -24485,7 +24485,7 @@ p5.Vector.prototype.array = function () {
  * </code>
  * </div>
  */
-p5.Vector.prototype.equals = function (x, y, z) {
+/*p5.Vector.prototype.equals = function (x, y, z) {
   var a, b, c;
   if (x instanceof p5.Vector) {
     a = x.x || 0;
@@ -24501,7 +24501,7 @@ p5.Vector.prototype.equals = function (x, y, z) {
     c = z || 0;
   }
   return this.x === a && this.y === b && this.z === c;
-};
+};*/
 
 
 // Static Methods
@@ -28123,7 +28123,7 @@ var p5 = _dereq_('../core/core');
  * </code>
  * </div>
  */
-p5.prototype.camera = function(x, y, z){
+p5.prototype.xcamera = function(x, y, z){
   var args = new Array(arguments.length);
   for (var i = 0; i < args.length; ++i) {
     args[i] = arguments[i];
@@ -31245,7 +31245,7 @@ p5.prototype.cylinder = function(){
  * </code>
  * </div>
  */
-p5.prototype.cone = function(){
+p5.prototype.xcone = function(){
   var args = new Array(arguments.length);
   for (var i = 0; i < args.length; ++i) {
     args[i] = arguments[i];
