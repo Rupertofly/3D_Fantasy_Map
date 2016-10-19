@@ -5,6 +5,7 @@ var cube;
 var water;
 var locH, locV; // location of the circle
 var circleColor = 255; // color of the circle
+var uniforms;
 //debugger;
 var tsinceb = 50;
 var outnum = 3;
@@ -93,7 +94,7 @@ var ggui = new dat.GUI({
 });
 
 function generateUneroded(ext) {
-    var mesh = generateGoodMesh(90000, ext);
+    var mesh = generateGoodMesh(16000, ext);
     var h = add(slope(mesh, randomVector(4)),
         cone(mesh, 0.5),
         mountains(mesh, 200, 0.15));
@@ -232,17 +233,18 @@ function init() {
 
     console.log(sortedpoints);
     Ntri = earcut(sortedpoints);
-    Ntri = createGroupedArray(Ntri,3);
+    Ntri = createGroupedArray(Ntri, 3);
     for (var c = 0; c < Ntri.length; c++) {
         var ftri = Ntri[c];
         var ta = edge_points[0];
         var tp1 = ta[ftri[0]].i;
         var tp2 = ta[ftri[1]].i;
         var tp3 = ta[ftri[2]].i;
-        geometry.faces.push(new THREE.Face3(edge_index[0][tp1],edge_index[0][tp2],edge_index[0][tp3]));
+        geometry.faces.push(new THREE.Face3(edge_index[0][tp1], edge_index[0][tp2], edge_index[0][tp3]));
     }
     console.log(edge_points[0]);
     var pgeo = new THREE.PlaneBufferGeometry(3, 3);
+
     /*var material = new THREE.MeshPhongMaterial({
         color: 0xdddddd,
         shading: THREE.FlatShading,
@@ -250,11 +252,46 @@ function init() {
         shininess: 0,
         specular: 0x000000
     });*/
-    var uniforms =
+   var cv1,cv2,cv3,cv4,cv5,cv6;
+   cv1 = new THREE.Color(0xb48669);   cv2 = new THREE.Color(0xc9c77f);
+   cv3 = new THREE.Color(0x5ab339);   cv4 = new THREE.Color(0xfcef7e);
+   cv5 = new THREE.Color(0x1580c2);
+   cv6 = new THREE.Color(0x181d4a);
+
+
+
+    var myuniforms = {
+        "cv1": {
+            type: "v3",
+            value: new THREE.Vector3(cv1.r,cv1.g,cv1.b)
+        },
+        "cv2": {
+            type: "v3",
+            value: new THREE.Vector3(cv2.r,cv2.g,cv2.b)
+        },
+        "cv3": {
+            type: "v3",
+            value: new THREE.Vector3(cv3.r,cv3.g,cv3.b)
+        },
+        "cv4": {
+            type: "v3",
+            value: new THREE.Vector3(cv4.r,cv4.g,cv4.b)
+        },
+        "cv5": {
+            type: "v3",
+            value: new THREE.Vector3(cv5.r,cv5.g,cv5.b)
+        },
+        "cv6": {
+            type: "v3",
+            value: new THREE.Vector3(cv6.r,cv6.g,cv6.b)
+        }
+    };
+    uniforms =
         THREE.UniformsUtils.merge([
 
-            THREE.UniformsLib["ambient"],
-            THREE.UniformsLib["lights"]
+            THREE.UniformsLib.ambient,
+            THREE.UniformsLib.lights,
+            myuniforms
 
         ]);
     material = new THREE.ShaderMaterial({
@@ -272,7 +309,7 @@ function init() {
         side: THREE.DoubleSide,
         specular: 0x000000,
         transparent: true,
-        opacity: 0.95
+        opacity: 0.8
     });
     //renderer.setClearColorHex(0x333F47, 1);
     cube = new THREE.Mesh(geometry, material);
@@ -282,7 +319,7 @@ function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-    renderer.setClearColor(0xff0000);
+    renderer.setClearColor(0x9ae0fe);
     cube.rotation.x = Math.radians(90);
     water.rotation.x = Math.radians(90);
     //water.rotation.x = -130;

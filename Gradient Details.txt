@@ -9,3 +9,5 @@ background-image: -webkit-linear-gradient(#831403, #f5ff3e 20.2%, #248500 40.1%,
 background-image: -moz-linear-gradient(#831403, #f5ff3e 20.2%, #248500 40.1%, #fcef7e 50.1%, #1580c2 56.7%, #181d4a);
 background-image: -o-linear-gradient(#831403, #f5ff3e 20.2%, #248500 40.1%, #fcef7e 50.1%, #1580c2 56.7%, #181d4a);
 background-image: linear-gradient(#831403, #f5ff3e 20.2%, #248500 40.1%, #fcef7e 50.1%, #1580c2 56.7%, #181d4a)
+
+[0.514, 0.078, 0.012][0.961, 1, 0.243]20.2
