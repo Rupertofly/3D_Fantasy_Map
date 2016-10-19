@@ -54,14 +54,26 @@ var createGroupedArray = function(arr, chunkSize) {
     return groups;
 };
 
-function Geo_Write(mesh, tria) {
+function Geo_Write(mesh, tria,wix) {
     var vmesh = mesh;
+    var vwix = wix;
     var vxs = vmesh.mesh.vxs;
     var ext = vmesh.mesh.extent;
     var wgeo = new THREE.Geometry();
     for (var i = 0; 0 < vmesh.mesh.length; i++) {
-        var vec = new THREE.Vector3(vxs[i][0] - (ext.width / 2), vxs[i][1] - (ext.height / 2), vmesh[i]);
+        var vec = new THREE.Vector3(vxs[i][0] - (ext.width / 2), vxs[i][1] - (ext.height / 2), -vmesh[i]);
+        wgeo.vertices.push(vec);
     }
+    wgeo.vertices.push(new THREE.Vector3(0,0,2));
+    wgeo.vertices.push(new THREE.Vector3(ext.width/2,0,2));
+    wgeo.vertices.push(new THREE.Vector3(ext.width/2,ext.height/2,2));
+    wgeo.vertices.push(new THREE.Vector3(0,ext.height/2,2));
+    for (var j = 0;j<4;j++){
+      var ds = ["N","W","E","S"];
+      
+    }
+
+
 
 }
 
@@ -72,8 +84,8 @@ function meshtogeo() {
     var meshtri = Delaunay.triangulate(vmesh.mesh.vxs);
     var meshind = {
         N: [],
-        E: [],
         W: [],
+        E: [],
         S: [],
     };
     for (var i = 0; i < vmesh.mesh.length; i++) {
@@ -82,10 +94,10 @@ function meshtogeo() {
             meshind.N.push(i);
         }
         if (vert[0] <= 0) {
-            meshind.E.push(i);
+            meshind.W.push(i);
         }
         if (vert[0] >= vmesh.mesh.extent.width) {
-            meshind.W.push(i);
+            meshind.E.push(i);
         }
         if (vert[1] >= vmesh.mesh.extent.height) {
             meshind.S.push(i);
@@ -93,7 +105,7 @@ function meshtogeo() {
     }
 
     for (var k = 0; k < 4; k++) {
-        var ds = ["N", "E", "W", "S"];
+        var ds = ["N", "W", "E", "S"];
         var dp = [[1,0],[4,0],[3,1],[4,3]];
         meshind.ds[k] = meshind.ds[k].sort(function(a, b) {
             return a.x - b.x;
@@ -102,7 +114,7 @@ function meshtogeo() {
         meshind.ds[k].push(dp[k][1]);
     }
         meshtri = createGroupedArray(meshtri, 3);
-        var geo = GeoWrite(vmesh, meshtri);
+        var geo = GeoWrite(vmesh, meshtri,meshind);
 
     }
 
