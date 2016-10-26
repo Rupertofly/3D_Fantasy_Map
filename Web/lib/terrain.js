@@ -40,9 +40,8 @@ function generatePoints(n, extent) {
     extent = extent || defaultExtent;
     var pts = [];
     for (var i = 0; i < n; i++) {
-        pts.push([Math.random() * extent.width, Math.random() * extent.height]);
+        pts.push([(Math.random() - 0.5) * extent.width, (Math.random() - 0.5) * extent.height]);
     }
-    // debugger;
     return pts;
 }
 
@@ -78,9 +77,9 @@ function generateGoodPoints(n, extent) {
 
 function voronoi(pts, extent) {
     extent = extent || defaultExtent;
-    var w = extent.width;
-    var h = extent.height;
-    return d3.voronoi().extent([[0, 0], [w, h]])(pts);
+    var w = extent.width/2;
+    var h = extent.height/2;
+    return d3.voronoi().extent([[-w, -h], [w, h]])(pts);
 }
 
 function makeMesh(pts, extent) {
@@ -387,7 +386,7 @@ function erode(h, amount) {
     var newh = zero(h.mesh);
     var maxr = d3.max(er);
     for (var i = 0; i < h.length; i++) {
-        newh[i] = h[i] - amount * (er[i] / maxr);
+        newh[i] = h[i] + amount * (er[i] / maxr);
     }
     return newh;
 }
@@ -833,7 +832,7 @@ function generateCoast(params) {
     h = peaky(h);
     h = doErosion(h, runif(0, 0.1), 5);
     h = setSeaLevel(h, runif(0.2, 0.6));
-    //h = fillSinks(h);
+    h = fillSinks(h);
     h = cleanCoast(h, 3);
     return h;
 }

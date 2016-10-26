@@ -1,259 +1,25 @@
 var scene;
 var camera;
 var renderer;
-var cube;
+
 var water;
-var locH, locV; // location of the circle
-var circleColor = 255; // color of the circle
+var tergeo;
 var uniforms;
 //debugger;
-var tsinceb = 50;
-var outnum = 3;
+
+var tmat;
+var wmat;
 var timet;
 var aniid;
-var bbyte;
+
 var tsinces = 100;
 var eledges;
 var Ntri;
-xxmap = function(n, start1, stop1, start2, stop2) {
-    return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
-};
-var inData;
-var serial; // variable to hold an instance of the serialport library
-var portName = 'COM3'; // fill in your serial port name here
-
-var defextent = {
-    width: 2,
-    height: 2
-};
-var defpoints = 500;
-var ggui = new dat.GUI({
-    height: 5 * 32 - 1
-});
-
-
-function empty(elem) {
-    while (elem.lastChild) elem.removeChild(elem.lastChild);
-}
-// Converts from degrees to radians.
-Math.radians = function(degrees) {
-    return degrees * Math.PI / 180;
-};
-
-// Converts from radians to degrees.
-Math.degrees = function(radians) {
-    return radians * 180 / Math.PI;
-};
-
-var createGroupedArray = function(arr, chunkSize) {
-    var groups = [],
-        i;
-    for (i = 0; i < arr.length; i += chunkSize) {
-        groups.push(arr.slice(i, i + chunkSize));
-    }
-    return groups;
-};
-
-function Geo_Write(mesh, tria, wix) {
-    debugger;
-    var vmesh = mesh;
-    var vwix = wix;
-    var vxs = vmesh.mesh.vxs;
-    var ext = vmesh.mesh.extent;
-    var wgeo = new THREE.Geometry();
-    for (var i = 0; 0 < vxs.length; i++) {
-        if(vxs[i]===null){continue;}
-        if (vxs[i].length == 2){
-            var vec = new THREE.Vector3(vxs[i][0] - (ext.width / 2), vxs[i][1] - (ext.height / 2), -vmesh[i]);
-            wgeo.vertices.push(vec);
-        }
-    }
-    wgeo.vertices.push(new THREE.Vector3(0, 0, 2));
-    wgeo.vertices.push(new THREE.Vector3(ext.width / 2, 0, 2));
-    wgeo.vertices.push(new THREE.Vector3(ext.width / 2, ext.height / 2, 2));
-    wgeo.vertices.push(new THREE.Vector3(0, ext.height / 2, 2));
-    for (var j = 0; j < 4; j++) {
-        debugger;
-        var ds = ["N", "W", "E", "S"];
-        var sidepoints = [];
-        for (var k; k < wix[ds[j]].length; k++) {
-            sidepoints.push(wgeo.vertices[wix[ds[j]][k]][0]);
-            sidepoints.push(wgeo.vertices[wix[ds[j]][k]][1]);
-        }
-        var triangles = earcut(sidepoints);
-        triangles = createGroupedArray(triangles, 3);
-        for (var l; l < triangles.length; l++) {
-            var tri = triangles[l];
-            wgeo.faces.push(new THREE.Face3(tri[0], tri[1], tri[2]));
-        }
-
-    }
-
-
-
-}
-
-function meshtogeo() {
-    debugger;
-    var mesh = generateGoodMesh(defpoints, defextent);
-    var vmesh = zero(mesh);
-    var meshtri = Delaunay.triangulate(vmesh.mesh.vxs);
-    var meshind = {
-        N: [],
-        W: [],
-        E: [],
-        S: []
-    };
-    for (var i = 0; i < vmesh.mesh.vxs.length; i++) {
-        //debugger;
-        var vert = vmesh.mesh.vxs[i];
-        if (vert[1] <= 0) {
-            meshind.N.push(i);
-        }
-        if (vert[0] <= 0) {
-            meshind.W.push(i);
-        }
-        if (vert[0] >= vmesh.mesh.extent.width) {
-            meshind.E.push(i);
-        }
-        if (vert[1] >= vmesh.mesh.extent.height) {
-            meshind.S.push(i);
-        }
-    }
-
-    for (var k = 0; k < 4; k++) {
-        debugger;
-        var ds = ['N', 'W', 'E', 'S'];
-        var F = ds[k];
-        var V = meshind[F];
-        var dp = [
-            [1, 0],
-            [4, 0],
-            [3, 1],
-            [4, 3]
-        ];
-        meshind[F] = V.sort(function(a, b) {
-            return a.x - b.x;
-        });
-        meshind[F].push(dp[k][0]);
-        meshind[F].push(dp[k][1]);
-    }
-    meshtri = createGroupedArray(meshtri, 3);
-    var geo = Geo_Write(vmesh, meshtri, meshind);
-
-}
-
-
-
-
-
-
-var geomesh;
-//console.log(geom.mesh.vxs);
-//console.log(geotris);
-var text2 = document.createElement('div');
-text2.style.position = 'absolute';
-//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
-text2.style.width = 100;
-text2.style.height = 100;
-
-//debugger;
-var edge_index = [
-    [],
-    [],
-    [],
-    []
-];
-var edge_points = [
-    [],
-    [],
-    [],
-    []
-];
-
-function init() {
-    meshtogeo();
-    timet = 0;
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-    camera.position.z = 2;
-    camera.position.y = 1;
-    camera.rotation.x = Math.radians(-45);
-    // debugger;
-    var hlight = new THREE.DirectionalLight(0xB58D3C, 1);
-    hlight.position.y = 4;
-    scene.add(hlight);
-    var geometry = new THREE.Geometry();
-    var gvxs = geom.mesh.vxs;
-    var thext = geom.mesh.extent;
-
-    for (var i = 0; i < geom.length; i++) {
-        var h = -1 * geom[i];
-
-        //h = Math.max(Math.min(h, 0.1), -0.1);
-        //console.log(h);
-        geometry.vertices.push(new THREE.Vector3(gvxs[i][0] - (thext.width / 2), gvxs[i][1] - (thext.width / 2), h));
-        if (gvxs[i][0] <= 0) {
-            edge_index[0].push(i);
-        }
-        if (gvxs[i][1] <= 0) {
-            edge_index[1].push(i);
-        }
-        if (gvxs[i][1] >= thext.width) {
-            edge_index[2].push(i);
-        }
-        if (gvxs[i][0] >= thext.height) {
-            edge_index[3].push(i);
-        }
-    }
-    for (var j = 0; j < geotris.length; j++) {
-        var t = geotris[j];
-        geometry.faces.push(new THREE.Face3(t[0], t[1], t[2]));
-    }
-    geometry.vertices.push(new THREE.Vector3(-1, 1, 2));
-    geometry.vertices.push(new THREE.Vector3(-1, -1, 2));
-    edge_index[0].push(geom.length);
-    edge_index[0].push(geom.length + 1);
-    console.log(geometry.vertices[geom.length + 1]);
-    for (var v = 0; v < edge_index[0].length; v++) {
-        var vert = geometry.vertices[edge_index[0][v]];
-        edge_points[0].push({
-            x: vert.y,
-            y: vert.z,
-            i: v
-        });
-    }
-    edge_points[0].sort(function(a, b) {
-        return a.x - b.x;
-    });
-    var sortedpoints = [];
-    for (var s = 0; s < edge_points[0].length; s++) {
-        var ll = edge_points[0][s];
-        sortedpoints.push([ll.x, ll.y]);
-    }
-    sortedpoints = [].concat.apply([], sortedpoints);
-
-    console.log(sortedpoints);
-    Ntri = earcut(sortedpoints);
-    Ntri = createGroupedArray(Ntri, 3);
-    for (var c = 0; c < Ntri.length; c++) {
-        var ftri = Ntri[c];
-        var ta = edge_points[0];
-        var tp1 = ta[ftri[0]].i;
-        var tp2 = ta[ftri[1]].i;
-        var tp3 = ta[ftri[2]].i;
-        geometry.faces.push(new THREE.Face3(edge_index[0][tp1], edge_index[0][tp2], edge_index[0][tp3]));
-    }
-    console.log(edge_points[0]);
-    var pgeo = new THREE.PlaneBufferGeometry(3, 3);
-
-    /*var material = new THREE.MeshPhongMaterial({
-        color: 0xdddddd,
-        shading: THREE.FlatShading,
-        //side: THREE.DoubleSide,
-        shininess: 0,
-        specular: 0x000000
-    });*/
+var Frun = true;
+var terra = null;
+var termesh;
+var pivot = null;
+function matshaders() {
     var cv1, cv2, cv3, cv4, cv5, cv6;
     cv1 = new THREE.Color(0xb48669);
     cv2 = new THREE.Color(0xc9c77f);
@@ -298,7 +64,7 @@ function init() {
             myuniforms
 
         ]);
-    material = new THREE.ShaderMaterial({
+    tmat = new THREE.ShaderMaterial({
         vertexShader: $('#vertexshader').text(),
         fragmentShader: $('#fragmentshader').text(),
         shading: THREE.FlatShading,
@@ -306,7 +72,7 @@ function init() {
         uniforms: uniforms,
         side: THREE.DoubleSide
     });
-    var watermaterial = new THREE.MeshPhongMaterial({
+    wmat = new THREE.MeshPhongMaterial({
         color: 0x13436b,
         shading: THREE.FlatShading,
         shininess: 0,
@@ -315,53 +81,262 @@ function init() {
         transparent: true,
         opacity: 0.8
     });
-    //renderer.setClearColorHex(0x333F47, 1);
-    cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-    water = new THREE.Mesh(pgeo, watermaterial);
+}
+xxmap = function(n, start1, stop1, start2, stop2) {
+    return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
+};
+
+
+var defextent = {
+    width: 1,
+    height: 1
+};
+var defpoints = 1000;
+
+function empty(elem) {
+    while (elem.lastChild) elem.removeChild(elem.lastChild);
+}
+// Converts from degrees to radians.
+Math.radians = function(degrees) {
+    return degrees * Math.PI / 180;
+};
+
+// Converts from radians to degrees.
+Math.degrees = function(radians) {
+    return radians * 180 / Math.PI;
+};
+
+createGroupedArray = function(arr, chunkSize) {
+    var groups = [],
+        i;
+    for (i = 0; i < arr.length; i += chunkSize) {
+        groups.push(arr.slice(i, i + chunkSize));
+    }
+    return groups;
+};
+
+var Geo_Write = function(mesh, tria, wix, dp) {
+    //debugger;
+    var vmesh = mesh;
+    var vwix = wix;
+    var vxs = vmesh.mesh.vxs;
+    var ext = vmesh.mesh.extent;
+    var wgeo = new THREE.Geometry();
+    for (var i = 0; i < vxs.length; i++) {
+        var vec = new THREE.Vector3(vxs[i][0] - (ext.width), vxs[i][1] - (ext.height), -vmesh[i] + (0.0002 * (Math.random())));
+        wgeo.vertices.push(vec);
+    }
+    wgeo.vertices.push(new THREE.Vector3(0, 0, 2));
+    wgeo.vertices.push(new THREE.Vector3(ext.width, 0, 2));
+    wgeo.vertices.push(new THREE.Vector3(ext.width, ext.height, 2));
+    wgeo.vertices.push(new THREE.Vector3(0, ext.height, 2));
+    var waxis = ['x', 'y', 'y', 'z'];
+    for (var j = 0; j < 4; j++) {
+        //debugger;
+        var ds = ['N', 'W', 'E', 'S'];
+        var bpts = dp[j];
+        var w = ds[j];
+        var wl = vwix[w];
+        var thisaxis = waxis[j];
+        var sidepoints = [];
+        for (var pt = 0; pt < wl.length; pt++) {
+            var vpos = wl[pt];
+            var ftri = wgeo.vertices[vpos];
+            sidepoints.push(ftri[thisaxis]);
+            sidepoints.push(ftri.z);
+        }
+        sidepoints = createGroupedArray(sidepoints, 2);
+        sidepoints.sort(function(a, b) {
+            return a[0] - b[0];
+        });
+        var botpoint1 = wgeo.vertices[vxs.length + dp[j][0]];
+        var botpoint2 = wgeo.vertices[vxs.length + dp[j][1]];
+        sidepoints.push([botpoint1[thisaxis], botpoint1.z]);
+        sidepoints.push([botpoint2[thisaxis], botpoint2.z]);
+
+        sidepoints = [].concat.apply([], sidepoints);
+        var triangles = earcut(sidepoints);
+        var finaltriangleindex = [];
+        //debugger;
+        for (var g = 0; g < triangles.length; g++) {
+            finaltriangleindex[g] = wl[triangles[g]] || vxs.length + (triangles[g] - wl.length);
+        }
+        finaltriangleindex = createGroupedArray(finaltriangleindex, 3);
+        for (var h = 0; h < finaltriangleindex.length; h++) {
+            var mvert = wgeo.vertices;
+            var tri = finaltriangleindex[h];
+            //wgeo.faces.push(new THREE.Face3(tri[0], tri[1], tri[2]));
+        }
+
+    }
+    for (var t = 0; t < tria.length; t++) {
+        var f = tria[t];
+        wgeo.faces.push(new THREE.Face3(f[0], f[1], f[2]));
+    }
+    //debugger;
+    return wgeo;
+
+};
+
+function M_To_Object(geom) {
+    debugger;
+    cancelAnimationFrame(aniid);
+    var rot = 0;
+    if (terra !== null) {
+        rot = pivot.rotation.y;
+    }
+    scene.remove(terra);
+    scene.remove(pivot);
+
+    terra = null;
+    terra = new THREE.Mesh(geom, tmat);
+    scene.add(terra);
+    pivot = new THREE.Object3D();
+    pivot.add(terra);
+    scene.add(pivot);
+    terra.position.x = 1;
+    terra.position.z = 1;
+    terra.rotation.x = Math.radians(90);
+    pivot.rotation.y = rot;
+    render();
+    timet = 0;
+}
+
+function meshtogeo() {
+    //debugger;
+    var mesh = generateGoodMesh(defpoints, defextent);
+    var vmesh = zero(mesh);
+    termesh = vmesh;
+    var meshtri = Delaunay.triangulate(vmesh.mesh.vxs);
+    var meshind = {
+        N: [],
+        W: [],
+        E: [],
+        S: []
+    };
+    for (var i = 0; i < vmesh.mesh.vxs.length; i++) {
+        //debugger;
+        var vert = vmesh.mesh.vxs[i];
+        if (vert[1] <= 0) {
+            meshind.N.push(i);
+        }
+        if (vert[0] <= 0) {
+            meshind.W.push(i);
+        }
+        if (vert[0] >= vmesh.mesh.extent.width) {
+            meshind.E.push(i);
+        }
+        if (vert[1] >= vmesh.mesh.extent.height) {
+            meshind.S.push(i);
+        }
+    }
+    var dp = [
+        [1, 0],
+        [3, 0],
+        [2, 1],
+        [2, 3]
+    ];
+    meshtri = createGroupedArray(meshtri, 3);
+    tergeo = Geo_Write(vmesh, meshtri, meshind, dp);
+    debugger;
+    M_To_Object(tergeo);
+}
+
+
+function addcone(workmesh, strength) {
+    var mesh = workmesh
+    debugger;
+    var nmesh = add(mountains(mesh.mesh, 50),cone(mesh.mesh,-0.5));
+    updateTerra(nmesh, tergeo);
+}
+
+
+
+var geomesh;
+//console.log(geom.mesh.vxs);
+//console.log(geotris);
+var text2 = document.createElement('div');
+text2.style.position = 'absolute';
+//text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+text2.style.width = 100;
+text2.style.height = 100;
+
+//debugger;
+var edge_index = [
+    [],
+    [],
+    [],
+    []
+];
+var edge_points = [
+    [],
+    [],
+    [],
+    []
+];
+
+function init() {
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.z = 2;
+    camera.position.y = 1;
+    camera.rotation.x = Math.radians(-45);
+    // debugger;
+    var hlight = new THREE.DirectionalLight(0xB58D3C, 1);
+    hlight.position.y = 4;
+    scene.add(hlight);
+    matshaders();
+    //meshtogeo();
+    var wgeo = new THREE.CubeGeometry(3, 3, 3);
+    water = new THREE.Mesh(wgeo, wmat);
     scene.add(water);
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
     renderer.setClearColor(0x9ae0fe);
-    cube.rotation.x = Math.radians(90);
+    //terra.rotation.x = Math.radians(90);
     water.rotation.x = Math.radians(90);
+    water.position.z = 0;
+    water.position.y = -1.51;
     //water.rotation.x = -130;
     //water.position.y = 0.1;
     window.scene = scene;
     window.THREE = THREE;
-    eledges = edge_points;
+    Frun = false;
     render();
+
 }
 init();
 
 function render() {
-    text2.innerHTML = cube.rotation.z + ',' + circleColor + ',' + locH + ',' + locV + ',' + outnum + ',' + bbyte;
+        timet++;
+    // text2.innerHTML = cube.rotation.z + ',' + circleColor + ',' + locH + ',' + locV + ',' + outnum + ',' + bbyte;
     text2.style.top = 60 + 'px';
     text2.style.left = 200 + 'px';
     document.body.appendChild(text2);
-    tsinces++;
     //debugger;
     aniid = requestAnimationFrame(render);
     //timet += 0.5;
     //camera.rotation.x -= 0.001*Math.PI;
-    //water.rotation.z += 0.001;
-    var rot = Math.floor(locH || 1) * 0.1;
-    cube.rotation.z += 0.02 * rot;
-    water.rotation.z += 0.02 * rot;
-    var floored = ((((Math.abs(cube.rotation.z / (Math.PI * 2))) % 1) * 256));
-    outnum = Math.floor(floored, 0.0, 1.0, 0, 256);
-    var heyo = locV || 1;
-    //debugger;
-    camera.rotation.x = heyo * Math.radians(-45);
-    if (tsinces > 60) {
-        serial.write(outnum); // send a byte requesting more serial data
-        tsinces = 0;
-    } else {
-        tsinces++;
+    water.rotation.z += 0.002;
+    if (pivot !== null) {
+        pivot.rotation.y -= 0.002;
     }
+    //debugger;
     renderer.render(scene, camera);
 }
+
+function updateTerra(mesh, geo) {
+    termesh = mesh;
+    var workinggeo = geo;
+    for (var d = 0; d < mesh.length; d++) {
+        workinggeo.vertices[d].z = (-mesh[d] * 0.1);
+    }
+    workinggeo.verticesNeedUpdate = true;
+    M_To_Object(workinggeo);
+}
+
 
 function rerender() {
 
@@ -400,3 +375,16 @@ function rerender() {
     //water.position.y = 0.1;
     render();
 }
+var ggui = new dat.GUI({
+    height: 5 * 32 - 1,
+});
+var guifunc = {
+    new: function() {
+        meshtogeo();
+    },
+    cone: function() {
+        addcone(termesh, 0.5);
+    }
+};
+ggui.add(guifunc, 'new');
+ggui.add(guifunc, 'cone');
